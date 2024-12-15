@@ -1,4 +1,4 @@
-package sql_gogen_lib
+package sqlgogen
 
 import "context"
 
