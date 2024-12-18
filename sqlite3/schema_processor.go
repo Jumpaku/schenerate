@@ -53,7 +53,7 @@ func queryTable(ctx context.Context, q queryer, table string) (Schema, error) {
 		Name   string `db:"Name"`
 		Type   string `db:"Type"`
 	}
-	rows, err := Query[recordTable](ctx, q, sqlgogen.Statement{
+	rows, err := query[recordTable](ctx, q, sqlgogen.Statement{
 		//language=SQL
 		Stmt: `--sql query table information
 SELECT 
@@ -81,7 +81,7 @@ func queryColumns(ctx context.Context, q queryer, table string) ([]Column, error
 		Type     string `db:"Type"`
 		Nullable bool   `db:"Nullable"`
 	}
-	rows, err := Query[column](ctx, q, sqlgogen.Statement{
+	rows, err := query[column](ctx, q, sqlgogen.Statement{
 		//language=SQL
 		Stmt: `--sql query column information
 SELECT 
@@ -105,7 +105,7 @@ func queryPrimaryKey(ctx context.Context, q queryer, table string) ([]string, er
 	type name struct {
 		Name string `db:"Name"`
 	}
-	rows, err := Query[name](ctx, q, sqlgogen.Statement{
+	rows, err := query[name](ctx, q, sqlgogen.Statement{
 		//language=SQL
 		Stmt: `--sql query primary key information
 SELECT "name" AS Name
@@ -128,7 +128,7 @@ func queryForeignKeys(ctx context.Context, q queryer, table string) ([]ForeignKe
 		FromColumn   string `db:"FromColumn"`
 		ToColumn     string `db:"ToColumn"`
 	}
-	rows, err := Query[fkRow](ctx, q, sqlgogen.Statement{
+	rows, err := query[fkRow](ctx, q, sqlgogen.Statement{
 		//language=SQL
 		Stmt: `--sql query foreign key information
 SELECT
@@ -173,7 +173,7 @@ func queryIndexes(ctx context.Context, q queryer, table string) ([]Index, error)
 		ColName  string `db:"ColName"`
 		IsDesc   bool   `db:"IsDesc"`
 	}
-	rows, err := Query[idxRow](ctx, q, sqlgogen.Statement{
+	rows, err := query[idxRow](ctx, q, sqlgogen.Statement{
 		//language=SQL
 		Stmt: `--sql query index information
 SELECT

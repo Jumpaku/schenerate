@@ -1,6 +1,7 @@
-package sqlite3
+package spanner
 
 import (
+	"cloud.google.com/go/spanner"
 	"context"
 	"fmt"
 	sqlgogen "github.com/Jumpaku/sql-gogen-lib"
@@ -16,23 +17,21 @@ type tableLister struct {
 }
 
 func (l tableLister) List(ctx context.Context) ([]sqlgogen.Table, error) {
+	tx := l.queryer.client.ReadOnlyTransaction()
+	defer tx.Close()
 	type table struct {
-		Schema string `db:"Schema"`
-		Name   string `db:"Name"`
-		Type   string `db:"Type"`
+		Name string `db:"Name"`
 	}
-	records, err := query[table](ctx, l.queryer, sqlgogen.Statement{
-		Stmt: `SELECT
-	"schema" AS Schema,
-	"name" AS Name,
-	"type" AS Type
-FROM pragma_table_list()
-ORDER BY "schema", "name"`,
+	records, err := query[table](ctx, tx, spanner.Statement{
+		SQL: `SELECT TABLE_NAME AS Name
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_SCHEMA = ''
+ORDER BY TABLE_NAME`,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list tables: %w", err)
 	}
 	return lo.Map(records, func(r table, _ int) sqlgogen.Table {
-		return sqlgogen.Table{Schema: r.Schema, Name: r.Name}
+		return sqlgogen.Table{Name: r.Name}
 	}), nil
 }

@@ -30,7 +30,7 @@ func (q queryer) Close() error {
 	return q.db.Close()
 }
 
-func Query[Record any](ctx context.Context, q queryer, stmt sqlgogen.Statement) (records []Record, err error) {
+func query[Record any](ctx context.Context, q queryer, stmt sqlgogen.Statement) (records []Record, err error) {
 	rows, err := q.db.QueryxContext(ctx, stmt.Stmt, stmt.Args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query: %w", err)

@@ -1,6 +1,7 @@
-package sqlite3
+package spanner
 
 import (
+	"cloud.google.com/go/spanner"
 	"context"
 	"fmt"
 	sqlgogen "github.com/Jumpaku/sql-gogen-lib"
@@ -15,7 +16,13 @@ type queryProcessor[Record any] struct {
 }
 
 func (p queryProcessor[Record]) Process(ctx context.Context, stmt sqlgogen.Statement, handler sqlgogen.QueryProcessHandler[Record]) error {
-	records, err := query[Record](ctx, p.queryer, stmt)
+	tx := p.queryer.client.ReadOnlyTransaction()
+	defer tx.Close()
+
+	records, err := query[Record](ctx, tx, spanner.Statement{
+		SQL:    stmt.Stmt,
+		Params: stmt.ArgsMap(),
+	})
 	if err != nil {
 		return fmt.Errorf("failed to query: %w", err)
 	}
