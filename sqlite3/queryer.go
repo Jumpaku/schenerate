@@ -8,10 +8,24 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func query[Record any](ctx context.Context, sqlite3 *sql.DB, stmt string, args ...any) (records []Record, err error) {
-	dbx := sqlx.NewDb(sqlite3, "sqlite3")
+type queryer struct {
+	dbx *sqlx.DB
+}
 
-	rows, err := dbx.QueryxContext(ctx, stmt, args...)
+func Open(dsn string) (queryer, error) {
+	db, err := sql.Open("sqlite3", dsn)
+	if err != nil {
+		return queryer{}, fmt.Errorf("failed to open: %w", err)
+	}
+	return queryer{dbx: sqlx.NewDb(db, "sqlite3")}, nil
+}
+
+func (q queryer) Close() error {
+	return q.dbx.Close()
+}
+
+func query[Record any](ctx context.Context, q queryer, stmt string, args ...any) (records []Record, err error) {
+	rows, err := q.dbx.QueryxContext(ctx, stmt, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query: %w", err)
 	}

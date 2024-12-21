@@ -6,24 +6,29 @@ import (
 	"testing"
 )
 
-func Setup(t *testing.T, dbPath string, ddls []string) (sqlite3 *sql.DB, teardown func()) {
+func Setup(t *testing.T, dbPath string, ddls []string) (q queryer, teardown func()) {
 	t.Helper()
 
-	sqlite3, err := sql.Open("sqlite3", dbPath)
+	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
 		t.Fatalf("failed to open: %v", err)
 	}
+	defer db.Close()
 
 	for i, ddl := range ddls {
-		_, err := sqlite3.Exec(ddl)
+		_, err := db.Exec(ddl)
 		if err != nil {
 			t.Fatalf("failed to exec %v: %v", i, err)
 		}
 	}
 
+	dbx, err := Open(dbPath)
+	if err != nil {
+		t.Fatalf("failed to open: %v", err)
+	}
 	teardown = func() {
-		sqlite3.Close()
+		dbx.Close()
 		os.Remove(dbPath)
 	}
-	return sqlite3, teardown
+	return dbx, teardown
 }

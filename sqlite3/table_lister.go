@@ -2,7 +2,6 @@ package sqlite3
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"github.com/samber/lo"
 )
@@ -12,13 +11,13 @@ type Table struct {
 	Name   string
 }
 
-func ListTables(ctx context.Context, sqlite3 *sql.DB) ([]Table, error) {
+func ListTables(ctx context.Context, q queryer) ([]Table, error) {
 	type table struct {
 		Schema string `db:"Schema"`
 		Name   string `db:"Name"`
 		Type   string `db:"Type"`
 	}
-	records, err := query[table](ctx, sqlite3, `SELECT
+	records, err := query[table](ctx, q, `SELECT
 	"schema" AS Schema,
 	"name" AS Name,
 	"type" AS Type

@@ -10,7 +10,10 @@ import (
 
 type SchemaProcessHandler func(out *files.Writer, schemas Schemas) error
 
-func ProcessSchema(ctx context.Context, tx Queryer, tables []string, handler SchemaProcessHandler) error {
+func ProcessSchema(ctx context.Context, q queryer, tables []string, handler SchemaProcessHandler) error {
+	tx := q.client.ReadOnlyTransaction()
+	defer tx.Close()
+
 	var schemas []Schema
 	for _, t := range tables {
 		schema, err := queryTable(ctx, tx, t)
@@ -38,8 +41,7 @@ func ProcessSchema(ctx context.Context, tx Queryer, tables []string, handler Sch
 	}
 
 	w := &files.Writer{}
-	err := handler(w, schemas)
-	if err != nil {
+	if err := handler(w, schemas); err != nil {
 		return err
 	}
 
@@ -49,7 +51,7 @@ func ProcessSchema(ctx context.Context, tx Queryer, tables []string, handler Sch
 	return nil
 }
 
-func queryTable(ctx context.Context, tx Queryer, table string) (Schema, error) {
+func queryTable(ctx context.Context, tx *spanner.ReadOnlyTransaction, table string) (Schema, error) {
 	type recordTable struct {
 		Name   string `db:"Name"`
 		Type   string `db:"Type"`
@@ -79,7 +81,7 @@ ORDER BY TABLE_NAME`,
 	return Schema{Name: record.Name, Type: record.Type, Parent: record.Parent}, nil
 }
 
-func queryColumns(ctx context.Context, tx Queryer, table string) ([]Column, error) {
+func queryColumns(ctx context.Context, tx *spanner.ReadOnlyTransaction, table string) ([]Column, error) {
 	type column struct {
 		Name     string `db:"Name"`
 		Type     string `db:"Type"`
@@ -106,7 +108,7 @@ ORDER BY ORDINAL_POSITION`,
 	}), nil
 }
 
-func queryPrimaryKey(ctx context.Context, tx Queryer, table string) ([]string, error) {
+func queryPrimaryKey(ctx context.Context, tx *spanner.ReadOnlyTransaction, table string) ([]string, error) {
 	type name struct {
 		Name string `db:"Name"`
 	}
@@ -128,7 +130,7 @@ ORDER BY kcu.ORDINAL_POSITION`,
 	return lo.Map(rows, func(item name, _ int) string { return item.Name }), nil
 }
 
-func queryForeignKeys(ctx context.Context, tx Queryer, table string) ([]ForeignKey, error) {
+func queryForeignKeys(ctx context.Context, tx *spanner.ReadOnlyTransaction, table string) ([]ForeignKey, error) {
 	type fkRow struct {
 		Name           string   `db:"Name"`
 		Key            []string `db:"Key"`
@@ -180,7 +182,7 @@ ORDER BY Name`,
 	return foreignKeys, nil
 }
 
-func queryIndexes(ctx context.Context, tx Queryer, table string) ([]Index, error) {
+func queryIndexes(ctx context.Context, tx *spanner.ReadOnlyTransaction, table string) ([]Index, error) {
 	type idxKey struct {
 		Name   string `db:"Name"`
 		IsDesc bool   `db:"IsDesc"`

@@ -3,7 +3,6 @@ package sqlite3
 import (
 	"cmp"
 	"context"
-	"database/sql"
 	"fmt"
 	"github.com/Jumpaku/sql-gogen-lib/files"
 	"github.com/samber/lo"
@@ -12,26 +11,26 @@ import (
 
 type SchemaProcessHandler func(out *files.Writer, schemas Schemas) error
 
-func ProcessSchema(ctx context.Context, db *sql.DB, tables []string, handler SchemaProcessHandler) error {
+func ProcessSchema(ctx context.Context, q queryer, tables []string, handler SchemaProcessHandler) error {
 	var schemas []Schema
 	for _, t := range tables {
-		schema, err := queryTable(ctx, db, t)
+		schema, err := queryTable(ctx, q, t)
 		if err != nil {
 			return fmt.Errorf(`fail to get schema of %s: %w`, t, err)
 		}
-		schema.Columns, err = queryColumns(ctx, db, t)
+		schema.Columns, err = queryColumns(ctx, q, t)
 		if err != nil {
 			return fmt.Errorf(`fail to get columns of %s: %w`, t, err)
 		}
-		schema.PrimaryKey, err = queryPrimaryKey(ctx, db, t)
+		schema.PrimaryKey, err = queryPrimaryKey(ctx, q, t)
 		if err != nil {
 			return fmt.Errorf(`fail to get primary key of %s: %w`, t, err)
 		}
-		schema.ForeignKeys, err = queryForeignKeys(ctx, db, t)
+		schema.ForeignKeys, err = queryForeignKeys(ctx, q, t)
 		if err != nil {
 			return fmt.Errorf(`fail to get foreign keys of %s: %w`, t, err)
 		}
-		schema.Indexes, err = queryIndexes(ctx, db, t)
+		schema.Indexes, err = queryIndexes(ctx, q, t)
 		if err != nil {
 			return fmt.Errorf(`fail to get indexes of %s: %w`, t, err)
 		}
@@ -40,8 +39,7 @@ func ProcessSchema(ctx context.Context, db *sql.DB, tables []string, handler Sch
 	}
 
 	w := &files.Writer{}
-	err := handler(w, schemas)
-	if err != nil {
+	if err := handler(w, schemas); err != nil {
 		return err
 	}
 
@@ -51,7 +49,7 @@ func ProcessSchema(ctx context.Context, db *sql.DB, tables []string, handler Sch
 	return nil
 }
 
-func queryTable(ctx context.Context, q *sql.DB, table string) (Schema, error) {
+func queryTable(ctx context.Context, q queryer, table string) (Schema, error) {
 	type recordTable struct {
 		Schema string `db:"Schema"`
 		Name   string `db:"Name"`
@@ -77,7 +75,7 @@ FROM pragma_table_list(?)`, table)
 	return Schema{Name: record.Name, Type: record.Type}, nil
 }
 
-func queryColumns(ctx context.Context, q *sql.DB, table string) ([]Column, error) {
+func queryColumns(ctx context.Context, q queryer, table string) ([]Column, error) {
 	type column struct {
 		Name     string `db:"Name"`
 		Type     string `db:"Type"`
@@ -101,7 +99,7 @@ ORDER BY "cid"`, table)
 	}), nil
 }
 
-func queryPrimaryKey(ctx context.Context, q *sql.DB, table string) ([]string, error) {
+func queryPrimaryKey(ctx context.Context, q queryer, table string) ([]string, error) {
 	type name struct {
 		Name string `db:"Name"`
 	}
@@ -118,7 +116,7 @@ ORDER BY "pk"`, table)
 	return lo.Map(rows, func(item name, _ int) string { return item.Name }), nil
 }
 
-func queryForeignKeys(ctx context.Context, q *sql.DB, table string) ([]ForeignKey, error) {
+func queryForeignKeys(ctx context.Context, q queryer, table string) ([]ForeignKey, error) {
 	type fkRow struct {
 		Id           int64  `db:"Id"`
 		Seq          int64  `db:"Seq"`
@@ -160,7 +158,7 @@ ORDER BY "id", "seq"`, table)
 	return foreignKeys, nil
 }
 
-func queryIndexes(ctx context.Context, q *sql.DB, table string) ([]Index, error) {
+func queryIndexes(ctx context.Context, q queryer, table string) ([]Index, error) {
 	type idxRow struct {
 		Seq      int64  `db:"Seq"`
 		Name     string `db:"Name"`

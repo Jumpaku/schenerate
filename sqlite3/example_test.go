@@ -2,22 +2,19 @@ package sqlite3_test
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"github.com/Jumpaku/sql-gogen-lib/files"
 	"github.com/Jumpaku/sql-gogen-lib/sqlite3"
 )
 
 func Example_processSchema() {
-	db, err := sql.Open("sqlite3", "db.sqlite")
+	q, err := sqlite3.Open("db.sqlite")
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
+	defer q.Close()
 
-	err = sqlite3.ProcessSchema(
-		context.Background(),
-		db,
+	err = sqlite3.ProcessSchema(context.Background(), q,
 		[]string{"Table"},
 		func(out *files.Writer, schemas sqlite3.Schemas) error {
 			for _, schema := range schemas {

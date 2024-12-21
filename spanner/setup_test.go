@@ -1,7 +1,6 @@
 package spanner
 
 import (
-	"cloud.google.com/go/spanner"
 	"context"
 	"flag"
 	"fmt"
@@ -17,12 +16,12 @@ import (
 var spannerInstance = flag.String("instance", "", "-instance=<spanner instance>")
 var spannerProject = flag.String("project", "", "-project=<GCP project>")
 
-func Setup(t *testing.T, database string, ddls []string) (queryer Queryer, teardown func()) {
+func Setup(t *testing.T, database string, ddls []string) (q queryer, teardown func()) {
 	t.Helper()
 
 	if *spannerProject == "" || *spannerInstance == "" {
 		t.Skip(`spanner project and instance are required`)
-		return nil, nil
+		return queryer{}, nil
 	}
 
 	project := *spannerProject
@@ -85,15 +84,13 @@ func Setup(t *testing.T, database string, ddls []string) (queryer Queryer, teard
 		}
 	}
 
-	c, err := spanner.NewClient(ctx, dataSource)
+	q, err := Open(ctx, project, instance, database)
 	if err != nil {
 		t.Fatalf(`fail to create spanner client with %q %q %q: %v`, project, instance, database, err)
 	}
-	tx := c.ReadOnlyTransaction()
 	teardown = func() {
-		tx.Close()
-		c.Close()
-
+		q.Close()
+		q.Close()
 	}
-	return tx, teardown
+	return q, teardown
 }

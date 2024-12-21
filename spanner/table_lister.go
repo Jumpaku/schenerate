@@ -7,7 +7,10 @@ import (
 	"github.com/samber/lo"
 )
 
-func ListTables(ctx context.Context, tx Queryer) ([]string, error) {
+func ListTables(ctx context.Context, q queryer) ([]string, error) {
+	tx := q.client.ReadOnlyTransaction()
+	defer tx.Close()
+
 	type table struct {
 		Name string `db:"Name"`
 	}
