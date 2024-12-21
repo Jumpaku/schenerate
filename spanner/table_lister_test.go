@@ -4,7 +4,6 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	sqlgogen "github.com/Jumpaku/sql-gogen-lib"
 	"github.com/Jumpaku/sql-gogen-lib/spanner"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -15,11 +14,11 @@ func TestTableLister_List(t *testing.T) {
 	testcases := []struct {
 		name string
 		ddls []string
-		want []sqlgogen.Table
+		want []string
 	}{
 		{
 			name: "empty",
-			want: []sqlgogen.Table{},
+			want: []string{},
 		},
 		{
 			name: "tables",
@@ -32,24 +31,24 @@ func TestTableLister_List(t *testing.T) {
 				table_lister_ddl05ForeignLoop3,
 				table_lister_ddl06UniqueKeys,
 			},
-			want: []sqlgogen.Table{
-				{Catalog: "", Schema: "", Name: "A"},
-				{Catalog: "", Schema: "", Name: "B_1"},
-				{Catalog: "", Schema: "", Name: "B_2"},
-				{Catalog: "", Schema: "", Name: "B_3"},
-				{Catalog: "", Schema: "", Name: "B_4"},
-				{Catalog: "", Schema: "", Name: "C_1"},
-				{Catalog: "", Schema: "", Name: "C_2"},
-				{Catalog: "", Schema: "", Name: "C_3"},
-				{Catalog: "", Schema: "", Name: "C_4"},
-				{Catalog: "", Schema: "", Name: "C_5"},
-				{Catalog: "", Schema: "", Name: "D_1"},
-				{Catalog: "", Schema: "", Name: "E_1"},
-				{Catalog: "", Schema: "", Name: "E_2"},
-				{Catalog: "", Schema: "", Name: "F_1"},
-				{Catalog: "", Schema: "", Name: "F_2"},
-				{Catalog: "", Schema: "", Name: "F_3"},
-				{Catalog: "", Schema: "", Name: "G"},
+			want: []string{
+				"A",
+				"B_1",
+				"B_2",
+				"B_3",
+				"B_4",
+				"C_1",
+				"C_2",
+				"C_3",
+				"C_4",
+				"C_5",
+				"D_1",
+				"E_1",
+				"E_2",
+				"F_1",
+				"F_2",
+				"F_3",
+				"G",
 			},
 		},
 	}
@@ -59,9 +58,7 @@ func TestTableLister_List(t *testing.T) {
 			q, teardown := spanner.Setup(t, database, testcase.ddls)
 			defer teardown()
 
-			sut := spanner.NewTableLister(q)
-
-			got, err := sut.List(context.Background())
+			got, err := spanner.ListTables(context.Background(), q)
 
 			require.Nil(t, err)
 			require.Equal(t, testcase.want, got)

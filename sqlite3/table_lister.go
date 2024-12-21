@@ -2,37 +2,32 @@ package sqlite3
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
-	sqlgogen "github.com/Jumpaku/sql-gogen-lib"
 	"github.com/samber/lo"
 )
 
-func NewTableLister(queryer queryer) sqlgogen.TableLister {
-	return tableLister{queryer: queryer}
+type Table struct {
+	Schema string
+	Name   string
 }
 
-type tableLister struct {
-	queryer queryer
-}
-
-func (l tableLister) List(ctx context.Context) ([]sqlgogen.Table, error) {
+func ListTables(ctx context.Context, sqlite3 *sql.DB) ([]Table, error) {
 	type table struct {
 		Schema string `db:"Schema"`
 		Name   string `db:"Name"`
 		Type   string `db:"Type"`
 	}
-	records, err := query[table](ctx, l.queryer, sqlgogen.Statement{
-		Stmt: `SELECT
+	records, err := query[table](ctx, sqlite3, `SELECT
 	"schema" AS Schema,
 	"name" AS Name,
 	"type" AS Type
 FROM pragma_table_list()
-ORDER BY "schema", "name"`,
-	})
+ORDER BY "schema", "name"`)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list tables: %w", err)
 	}
-	return lo.Map(records, func(r table, _ int) sqlgogen.Table {
-		return sqlgogen.Table{Schema: r.Schema, Name: r.Name}
+	return lo.Map(records, func(r table, _ int) Table {
+		return Table{Schema: r.Schema, Name: r.Name}
 	}), nil
 }

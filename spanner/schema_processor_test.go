@@ -4,7 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	sqlgogen "github.com/Jumpaku/sql-gogen-lib"
+	"github.com/Jumpaku/sql-gogen-lib/files"
 	"github.com/Jumpaku/sql-gogen-lib/spanner"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -15,13 +15,13 @@ func TestSchemaProcessor_Process(t *testing.T) {
 	testcases := []struct {
 		name string
 		ddls []string
-		in   []sqlgogen.Table
+		in   []string
 		want spanner.Schemas
 	}{
 		{
 			name: "all types",
 			ddls: []string{schema_processor_ddl00AllTypes},
-			in:   []sqlgogen.Table{{Name: "A"}},
+			in:   []string{"A"},
 			want: spanner.Schemas{
 				spanner.Schema{
 					Name:   "A",
@@ -53,7 +53,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 		{
 			name: "interleave",
 			ddls: []string{schema_processor_ddl01Interleave},
-			in:   []sqlgogen.Table{{Name: "B_1"}, {Name: "B_2"}, {Name: "B_3"}, {Name: "B_4"}},
+			in:   []string{"B_1", "B_2", "B_3", "B_4"},
 			want: spanner.Schemas{
 				spanner.Schema{
 					Name:   "B_1",
@@ -100,7 +100,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 		{
 			name: "foreign keys",
 			ddls: []string{schema_processor_ddl02ForeignKeys},
-			in:   []sqlgogen.Table{{Name: "C_1"}, {Name: "C_2"}, {Name: "C_3"}, {Name: "C_4"}, {Name: "C_5"}},
+			in:   []string{"C_1", "C_2", "C_3", "C_4", "C_5"},
 			want: spanner.Schemas{
 				spanner.Schema{
 					Name:   "C_1",
@@ -174,7 +174,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 		{
 			name: "foreign loop 1",
 			ddls: []string{schema_processor_ddl03ForeignLoop1},
-			in:   []sqlgogen.Table{{Name: "D_1"}},
+			in:   []string{"D_1"},
 			want: spanner.Schemas{
 				spanner.Schema{
 					Name:   "D_1",
@@ -194,7 +194,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 		{
 			name: "foreign loop 2",
 			ddls: []string{schema_processor_ddl04ForeignLoop2},
-			in:   []sqlgogen.Table{{Name: "E_1"}, {Name: "E_2"}},
+			in:   []string{"E_1", "E_2"},
 			want: spanner.Schemas{
 				spanner.Schema{
 					Name:   "E_1",
@@ -227,7 +227,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 		{
 			name: "foreign loop 3",
 			ddls: []string{schema_processor_ddl05ForeignLoop3},
-			in:   []sqlgogen.Table{{Name: "F_1"}, {Name: "F_2"}, {Name: "F_3"}},
+			in:   []string{"F_1", "F_2", "F_3"},
 			want: spanner.Schemas{
 				spanner.Schema{
 					Name:   "F_1",
@@ -273,7 +273,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 		{
 			name: "unique keys index",
 			ddls: []string{schema_processor_ddl06UniqueKeys},
-			in:   []sqlgogen.Table{{Name: "G"}},
+			in:   []string{"G"},
 			want: spanner.Schemas{
 				spanner.Schema{
 					Name:   "G",
@@ -313,18 +313,17 @@ func TestSchemaProcessor_Process(t *testing.T) {
 			q, teardown := spanner.Setup(t, dbPath, testcase.ddls)
 			defer teardown()
 
-			sut := spanner.NewSchemaProcessor(q)
-
-			ok := false
-			err := sut.Process(context.Background(), testcase.in, func(got spanner.Schemas) error {
-
-				equalSchema(t, testcase.want, got)
-				ok = true
-				return nil
-			})
-
+			var got spanner.Schemas
+			err := spanner.ProcessSchema(
+				context.Background(),
+				q,
+				testcase.in,
+				func(_ *files.Writer, schemas spanner.Schemas) error {
+					got = schemas
+					return nil
+				})
 			require.Nil(t, err)
-			require.True(t, ok)
+			equalSchema(t, testcase.want, got)
 		})
 	}
 }

@@ -3,66 +3,68 @@ package sqlite3
 import (
 	"cmp"
 	"context"
+	"database/sql"
 	"fmt"
-	sqlgogen "github.com/Jumpaku/sql-gogen-lib"
+	"github.com/Jumpaku/sql-gogen-lib/files"
 	"github.com/samber/lo"
 	"slices"
 )
 
-func NewSchemaProcessor(queryer queryer) sqlgogen.SchemaProcessor[Schemas] {
-	return schemaProcessor{queryer: queryer}
-}
+type SchemaProcessHandler func(out *files.Writer, schemas Schemas) error
 
-type schemaProcessor struct {
-	queryer queryer
-}
-
-func (p schemaProcessor) Process(ctx context.Context, tables []sqlgogen.Table, handler sqlgogen.SchemaProcessHandler[Schemas]) error {
+func ProcessSchema(ctx context.Context, db *sql.DB, tables []string, handler SchemaProcessHandler) error {
 	var schemas []Schema
 	for _, t := range tables {
-		schema, err := queryTable(ctx, p.queryer, t.Name)
+		schema, err := queryTable(ctx, db, t)
 		if err != nil {
-			return fmt.Errorf(`fail to get schema of %s: %w`, t.Name, err)
+			return fmt.Errorf(`fail to get schema of %s: %w`, t, err)
 		}
-		schema.Columns, err = queryColumns(ctx, p.queryer, t.Name)
+		schema.Columns, err = queryColumns(ctx, db, t)
 		if err != nil {
-			return fmt.Errorf(`fail to get columns of %s: %w`, t.Name, err)
+			return fmt.Errorf(`fail to get columns of %s: %w`, t, err)
 		}
-		schema.PrimaryKey, err = queryPrimaryKey(ctx, p.queryer, t.Name)
+		schema.PrimaryKey, err = queryPrimaryKey(ctx, db, t)
 		if err != nil {
-			return fmt.Errorf(`fail to get primary key of %s: %w`, t.Name, err)
+			return fmt.Errorf(`fail to get primary key of %s: %w`, t, err)
 		}
-		schema.ForeignKeys, err = queryForeignKeys(ctx, p.queryer, t.Name)
+		schema.ForeignKeys, err = queryForeignKeys(ctx, db, t)
 		if err != nil {
-			return fmt.Errorf(`fail to get foreign keys of %s: %w`, t.Name, err)
+			return fmt.Errorf(`fail to get foreign keys of %s: %w`, t, err)
 		}
-		schema.Indexes, err = queryIndexes(ctx, p.queryer, t.Name)
+		schema.Indexes, err = queryIndexes(ctx, db, t)
 		if err != nil {
-			return fmt.Errorf(`fail to get indexes of %s: %w`, t.Name, err)
+			return fmt.Errorf(`fail to get indexes of %s: %w`, t, err)
 		}
 
 		schemas = append(schemas, schema)
 	}
 
-	return handler(schemas)
+	w := &files.Writer{}
+	err := handler(w, schemas)
+	if err != nil {
+		return err
+	}
+
+	if err := w.Save(); err != nil {
+		return fmt.Errorf(`fail to save files writer: %w`, err)
+	}
+	return nil
 }
 
-func queryTable(ctx context.Context, q queryer, table string) (Schema, error) {
+func queryTable(ctx context.Context, q *sql.DB, table string) (Schema, error) {
 	type recordTable struct {
 		Schema string `db:"Schema"`
 		Name   string `db:"Name"`
 		Type   string `db:"Type"`
 	}
-	rows, err := query[recordTable](ctx, q, sqlgogen.Statement{
+	rows, err := query[recordTable](ctx, q,
 		//language=SQL
-		Stmt: `--sql query table information
+		`--sql query table information
 SELECT 
 	"schema" AS Schema,
 	"name" AS Name,
 	"type" AS Type
-FROM pragma_table_list(?)`,
-		Args: []interface{}{table},
-	})
+FROM pragma_table_list(?)`, table)
 	if err != nil {
 		return Schema{}, fmt.Errorf(`fail to get table %s: %w`, table, err)
 	}
@@ -75,23 +77,21 @@ FROM pragma_table_list(?)`,
 	return Schema{Name: record.Name, Type: record.Type}, nil
 }
 
-func queryColumns(ctx context.Context, q queryer, table string) ([]Column, error) {
+func queryColumns(ctx context.Context, q *sql.DB, table string) ([]Column, error) {
 	type column struct {
 		Name     string `db:"Name"`
 		Type     string `db:"Type"`
 		Nullable bool   `db:"Nullable"`
 	}
-	rows, err := query[column](ctx, q, sqlgogen.Statement{
+	rows, err := query[column](ctx, q,
 		//language=SQL
-		Stmt: `--sql query column information
+		`--sql query column information
 SELECT 
 	"name" AS Name,
 	"type" AS Type,
 	"notnull" = 0 AS Nullable
 FROM pragma_table_info(?)
-ORDER BY "cid"`,
-		Args: []interface{}{table},
-	})
+ORDER BY "cid"`, table)
 	if err != nil {
 		return nil, fmt.Errorf(`fail to get columns of %s: %w`, table, err)
 	}
@@ -101,26 +101,24 @@ ORDER BY "cid"`,
 	}), nil
 }
 
-func queryPrimaryKey(ctx context.Context, q queryer, table string) ([]string, error) {
+func queryPrimaryKey(ctx context.Context, q *sql.DB, table string) ([]string, error) {
 	type name struct {
 		Name string `db:"Name"`
 	}
-	rows, err := query[name](ctx, q, sqlgogen.Statement{
+	rows, err := query[name](ctx, q,
 		//language=SQL
-		Stmt: `--sql query primary key information
+		`--sql query primary key information
 SELECT "name" AS Name
 FROM pragma_table_info(?)
 WHERE "pk" > 0
-ORDER BY "pk"`,
-		Args: []interface{}{table},
-	})
+ORDER BY "pk"`, table)
 	if err != nil {
 		return nil, fmt.Errorf(`fail to get primary key of %s: %w`, table, err)
 	}
 	return lo.Map(rows, func(item name, _ int) string { return item.Name }), nil
 }
 
-func queryForeignKeys(ctx context.Context, q queryer, table string) ([]ForeignKey, error) {
+func queryForeignKeys(ctx context.Context, q *sql.DB, table string) ([]ForeignKey, error) {
 	type fkRow struct {
 		Id           int64  `db:"Id"`
 		Seq          int64  `db:"Seq"`
@@ -128,9 +126,9 @@ func queryForeignKeys(ctx context.Context, q queryer, table string) ([]ForeignKe
 		FromColumn   string `db:"FromColumn"`
 		ToColumn     string `db:"ToColumn"`
 	}
-	rows, err := query[fkRow](ctx, q, sqlgogen.Statement{
+	rows, err := query[fkRow](ctx, q,
 		//language=SQL
-		Stmt: `--sql query foreign key information
+		`--sql query foreign key information
 SELECT
 	"id" AS Id,
 	"seq" AS Seq,
@@ -138,9 +136,7 @@ SELECT
 	"from" AS FromColumn,
 	"to" AS ToColumn
 FROM pragma_foreign_key_list(?)
-ORDER BY "id", "seq"`,
-		Args: []interface{}{table},
-	})
+ORDER BY "id", "seq"`, table)
 	if err != nil {
 		return nil, fmt.Errorf(`fail to get foreign keys of %s: %w`, table, err)
 	}
@@ -164,7 +160,7 @@ ORDER BY "id", "seq"`,
 	return foreignKeys, nil
 }
 
-func queryIndexes(ctx context.Context, q queryer, table string) ([]Index, error) {
+func queryIndexes(ctx context.Context, q *sql.DB, table string) ([]Index, error) {
 	type idxRow struct {
 		Seq      int64  `db:"Seq"`
 		Name     string `db:"Name"`
@@ -173,9 +169,9 @@ func queryIndexes(ctx context.Context, q queryer, table string) ([]Index, error)
 		ColName  string `db:"ColName"`
 		IsDesc   bool   `db:"IsDesc"`
 	}
-	rows, err := query[idxRow](ctx, q, sqlgogen.Statement{
+	rows, err := query[idxRow](ctx, q,
 		//language=SQL
-		Stmt: `--sql query index information
+		`--sql query index information
 SELECT
     pil."seq" AS Seq,
     pil."name" AS Name,
@@ -186,9 +182,7 @@ SELECT
 FROM pragma_index_list(?) AS pil
     JOIN pragma_index_xinfo(pil.name) AS pii
 WHERE pii."name" <> ''
-ORDER BY pil."origin", pil."name", pil."seq", pii."seqno"`,
-		Args: []interface{}{table},
-	})
+ORDER BY pil."origin", pil."name", pil."seq", pii."seqno"`, table)
 	if err != nil {
 		return nil, fmt.Errorf(`fail to get unique keys of %s: %w`, table, err)
 	}

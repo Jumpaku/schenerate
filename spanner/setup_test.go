@@ -1,6 +1,7 @@
 package spanner
 
 import (
+	"cloud.google.com/go/spanner"
 	"context"
 	"flag"
 	"fmt"
@@ -16,11 +17,17 @@ import (
 var spannerInstance = flag.String("instance", "", "-instance=<spanner instance>")
 var spannerProject = flag.String("project", "", "-project=<GCP project>")
 
-func Setup(t *testing.T, database string, ddls []string) (queryer queryer, teardown func()) {
+func Setup(t *testing.T, database string, ddls []string) (queryer Queryer, teardown func()) {
 	t.Helper()
+
+	if *spannerProject == "" || *spannerInstance == "" {
+		t.Skip(`spanner project and instance are required`)
+		return nil, nil
+	}
 
 	project := *spannerProject
 	instance := *spannerInstance
+	dataSource := fmt.Sprintf(`projects/%s/instances/%s/databases/%s`, project, instance, database)
 
 	ctx := context.Background()
 	{
@@ -43,7 +50,6 @@ func Setup(t *testing.T, database string, ddls []string) (queryer queryer, teard
 			}
 		}
 		{
-			dataSource := fmt.Sprintf(`projects/%s/instances/%s/databases/%s`, project, instance, database)
 			ddls = lo.FlatMap(ddls, func(s string, _ int) []string {
 				tokens, err := tokenize.Tokenize([]rune(s))
 				if err != nil {
@@ -79,12 +85,15 @@ func Setup(t *testing.T, database string, ddls []string) (queryer queryer, teard
 		}
 	}
 
-	q, err := Open(project, instance, database)
+	c, err := spanner.NewClient(ctx, dataSource)
 	if err != nil {
 		t.Fatalf(`fail to create spanner client with %q %q %q: %v`, project, instance, database, err)
 	}
+	tx := c.ReadOnlyTransaction()
 	teardown = func() {
-		q.Close()
+		tx.Close()
+		c.Close()
+
 	}
-	return q, teardown
+	return tx, teardown
 }

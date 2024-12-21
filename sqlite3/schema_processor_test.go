@@ -4,7 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	sqlgogen "github.com/Jumpaku/sql-gogen-lib"
+	"github.com/Jumpaku/sql-gogen-lib/files"
 	"github.com/Jumpaku/sql-gogen-lib/sqlite3"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -15,13 +15,13 @@ func TestSchemaProcessor_Process(t *testing.T) {
 	testcases := []struct {
 		name string
 		ddls []string
-		in   []sqlgogen.Table
+		in   []string
 		want sqlite3.Schemas
 	}{
 		{
 			name: "all types",
 			ddls: []string{schema_processor_ddl00AllTypes},
-			in:   []sqlgogen.Table{{Name: "A"}},
+			in:   []string{"A"},
 			want: sqlite3.Schemas{
 				sqlite3.Schema{
 					Name: "A",
@@ -57,7 +57,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 		{
 			name: "foreign keys",
 			ddls: []string{schema_processor_ddl02ForeignKeys},
-			in:   []sqlgogen.Table{{Name: "C_1"}, {Name: "C_2"}, {Name: "C_3"}, {Name: "C_4"}, {Name: "C_5"}},
+			in:   []string{"C_1", "C_2", "C_3", "C_4", "C_5"},
 			want: sqlite3.Schemas{
 				sqlite3.Schema{
 					Name: "C_1",
@@ -137,7 +137,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 		{
 			name: "foreign loop 1",
 			ddls: []string{schema_processor_ddl03ForeignLoop1},
-			in:   []sqlgogen.Table{{Name: "D_1"}},
+			in:   []string{"D_1"},
 			want: sqlite3.Schemas{
 				sqlite3.Schema{
 					Name: "D_1",
@@ -159,7 +159,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 		{
 			name: "foreign loop 2",
 			ddls: []string{schema_processor_ddl04ForeignLoop2},
-			in:   []sqlgogen.Table{{Name: "E_1"}, {Name: "E_2"}},
+			in:   []string{"E_1", "E_2"},
 			want: sqlite3.Schemas{
 				sqlite3.Schema{
 					Name: "E_1",
@@ -196,7 +196,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 		{
 			name: "foreign loop 3",
 			ddls: []string{schema_processor_ddl05ForeignLoop3},
-			in:   []sqlgogen.Table{{Name: "F_1"}, {Name: "F_2"}, {Name: "F_3"}},
+			in:   []string{"F_1", "F_2", "F_3"},
 			want: sqlite3.Schemas{
 				sqlite3.Schema{
 					Name: "F_1",
@@ -248,7 +248,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 		{
 			name: "unique keys index",
 			ddls: []string{schema_processor_ddl06UniqueKeysIndex},
-			in:   []sqlgogen.Table{{Name: "G"}},
+			in:   []string{"G"},
 			want: sqlite3.Schemas{
 				sqlite3.Schema{
 					Name: "G",
@@ -284,7 +284,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 		{
 			name: "unique keys constraint",
 			ddls: []string{schema_processor_ddl07UniqueKeysConstraint},
-			in:   []sqlgogen.Table{{Name: "H"}},
+			in:   []string{"H"},
 			want: sqlite3.Schemas{
 				sqlite3.Schema{
 					Name: "H",
@@ -320,7 +320,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 		{
 			name: "unique keys column",
 			ddls: []string{schema_processor_ddl08UniqueKeysColumn},
-			in:   []sqlgogen.Table{{Name: "I"}},
+			in:   []string{"I"},
 			want: sqlite3.Schemas{
 				sqlite3.Schema{
 					Name: "I",
@@ -348,18 +348,14 @@ func TestSchemaProcessor_Process(t *testing.T) {
 			q, teardown := sqlite3.Setup(t, dbPath, testcase.ddls)
 			defer teardown()
 
-			sut := sqlite3.NewSchemaProcessor(q)
-
-			ok := false
-			err := sut.Process(context.Background(), testcase.in, func(got sqlite3.Schemas) error {
-
-				equalSchema(t, testcase.want, got)
-				ok = true
+			var got sqlite3.Schemas
+			err := sqlite3.ProcessSchema(context.Background(), q, testcase.in, func(w *files.Writer, schemas sqlite3.Schemas) error {
+				got = schemas
 				return nil
 			})
 
 			require.Nil(t, err)
-			require.True(t, ok)
+			equalSchema(t, testcase.want, got)
 		})
 	}
 }

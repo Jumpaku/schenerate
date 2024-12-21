@@ -4,22 +4,21 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	sqlgogen "github.com/Jumpaku/sql-gogen-lib"
 	"github.com/Jumpaku/sql-gogen-lib/sqlite3"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 )
 
-func TestTableLister_List(t *testing.T) {
+func TestListTables(t *testing.T) {
 	testcases := []struct {
 		name string
 		ddls []string
-		want []sqlgogen.Table
+		want []sqlite3.Table
 	}{
 		{
 			name: "empty",
-			want: []sqlgogen.Table{
+			want: []sqlite3.Table{
 				{
 					Schema: "main",
 					Name:   "sqlite_schema",
@@ -42,24 +41,24 @@ func TestTableLister_List(t *testing.T) {
 				table_lister_ddl07UniqueKeysConstraint,
 				table_lister_ddl08UniqueKeysColumn,
 			},
-			want: []sqlgogen.Table{
-				{Catalog: "", Schema: "main", Name: "A"},
-				{Catalog: "", Schema: "main", Name: "C_1"},
-				{Catalog: "", Schema: "main", Name: "C_2"},
-				{Catalog: "", Schema: "main", Name: "C_3"},
-				{Catalog: "", Schema: "main", Name: "C_4"},
-				{Catalog: "", Schema: "main", Name: "C_5"},
-				{Catalog: "", Schema: "main", Name: "D_1"},
-				{Catalog: "", Schema: "main", Name: "E_1"},
-				{Catalog: "", Schema: "main", Name: "E_2"},
-				{Catalog: "", Schema: "main", Name: "F_1"},
-				{Catalog: "", Schema: "main", Name: "F_2"},
-				{Catalog: "", Schema: "main", Name: "F_3"},
-				{Catalog: "", Schema: "main", Name: "G"},
-				{Catalog: "", Schema: "main", Name: "H"},
-				{Catalog: "", Schema: "main", Name: "I"},
-				{Catalog: "", Schema: "main", Name: "sqlite_schema"},
-				{Catalog: "", Schema: "temp", Name: "sqlite_temp_schema"},
+			want: []sqlite3.Table{
+				{Schema: "main", Name: "A"},
+				{Schema: "main", Name: "C_1"},
+				{Schema: "main", Name: "C_2"},
+				{Schema: "main", Name: "C_3"},
+				{Schema: "main", Name: "C_4"},
+				{Schema: "main", Name: "C_5"},
+				{Schema: "main", Name: "D_1"},
+				{Schema: "main", Name: "E_1"},
+				{Schema: "main", Name: "E_2"},
+				{Schema: "main", Name: "F_1"},
+				{Schema: "main", Name: "F_2"},
+				{Schema: "main", Name: "F_3"},
+				{Schema: "main", Name: "G"},
+				{Schema: "main", Name: "H"},
+				{Schema: "main", Name: "I"},
+				{Schema: "main", Name: "sqlite_schema"},
+				{Schema: "temp", Name: "sqlite_temp_schema"},
 			},
 		},
 	}
@@ -69,9 +68,7 @@ func TestTableLister_List(t *testing.T) {
 			q, teardown := sqlite3.Setup(t, dbPath, testcase.ddls)
 			defer teardown()
 
-			sut := sqlite3.NewTableLister(q)
-
-			got, err := sut.List(context.Background())
+			got, err := sqlite3.ListTables(context.Background(), q)
 
 			require.Nil(t, err)
 			require.Equal(t, testcase.want, got)

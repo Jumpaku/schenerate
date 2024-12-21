@@ -8,28 +8,11 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-func Open(project, instance, database string) (queryer, error) {
-	c, err := spanner.NewClient(context.Background(), fmt.Sprintf("projects/%s/instances/%s/databases/%s", project, instance, database))
-	if err != nil {
-		return queryer{}, fmt.Errorf("failed to create spanner client: %w", err)
-	}
-
-	return NewClient(c), nil
+type Queryer interface {
+	Query(ctx context.Context, statement spanner.Statement) *spanner.RowIterator
 }
 
-func NewClient(client *spanner.Client) queryer {
-	return queryer{client: client}
-}
-
-type queryer struct {
-	client *spanner.Client
-}
-
-func (q queryer) Close() {
-	q.client.Close()
-}
-
-func query[Record any](ctx context.Context, tx *spanner.ReadOnlyTransaction, stmt spanner.Statement) (records []Record, err error) {
+func query[Record any](ctx context.Context, tx Queryer, stmt spanner.Statement) (records []Record, err error) {
 	rows := tx.Query(ctx, stmt)
 	for {
 		row, err := rows.Next()

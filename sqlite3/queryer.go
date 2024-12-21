@@ -4,34 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	sqlgogen "github.com/Jumpaku/sql-gogen-lib"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func Open(sqlite3ConnectionString string) (queryer, error) {
-	dbx, err := sqlx.Open("sqlite3", sqlite3ConnectionString)
-	if err != nil {
-		return queryer{}, fmt.Errorf("failed to connect to sqlite3: %w", err)
-	}
-	return queryer{db: dbx}, nil
-}
+func query[Record any](ctx context.Context, sqlite3 *sql.DB, stmt string, args ...any) (records []Record, err error) {
+	dbx := sqlx.NewDb(sqlite3, "sqlite3")
 
-func New(db *sql.DB) queryer {
-	dbx := sqlx.NewDb(db, "sqlite3")
-	return queryer{db: dbx}
-}
-
-type queryer struct {
-	db *sqlx.DB
-}
-
-func (q queryer) Close() error {
-	return q.db.Close()
-}
-
-func query[Record any](ctx context.Context, q queryer, stmt sqlgogen.Statement) (records []Record, err error) {
-	rows, err := q.db.QueryxContext(ctx, stmt.Stmt, stmt.Args...)
+	rows, err := dbx.QueryxContext(ctx, stmt, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query: %w", err)
 	}

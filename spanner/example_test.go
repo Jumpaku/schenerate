@@ -1,24 +1,29 @@
 package spanner_test
 
 import (
+	spanner2 "cloud.google.com/go/spanner"
 	"context"
 	"fmt"
-	sqlgogen "github.com/Jumpaku/sql-gogen-lib"
+	sqlgogen "github.com/Jumpaku/sql-gogen-lib/files"
 	"github.com/Jumpaku/sql-gogen-lib/spanner"
 )
 
-func ExampleNewSchemaProcessor() {
-	db, err := spanner.Open("<project>", "instance", "database")
+func Example_processSchema() {
+	ctx := context.Background()
+	client, err := spanner2.NewClient(ctx, "projects/<project>/instances/<instance>/databases/<database>")
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
+	defer client.Close()
 
-	p := spanner.NewSchemaProcessor(db)
-	err = p.Process(
+	tx := client.ReadOnlyTransaction()
+	defer tx.Close()
+
+	err = spanner.ProcessSchema(
 		context.Background(),
-		[]sqlgogen.Table{{Name: "Table"}},
-		func(schemas spanner.Schemas) error {
+		tx,
+		[]string{"Table"},
+		func(_ *sqlgogen.Writer, schemas spanner.Schemas) error {
 			for _, schema := range schemas {
 				// do something with schemas
 				fmt.Printf("%+v\n", schema.Name)
