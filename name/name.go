@@ -82,6 +82,18 @@ func (n Name) RemoveIf(f func(w string) bool) Name {
 	}
 }
 
+func (n Name) Len() int {
+	return len(n.words)
+}
+
+func (n Name) Slice(begin, end int) Name {
+	return Name{words: n.words[begin:end]}
+}
+
+func (n Name) Get(i int) Name {
+	return Name{words: []string{n.words[i]}}
+}
+
 func (n Name) LowerCamel() string {
 	u := n.UpperCamel()
 	if u == "" {
@@ -94,56 +106,49 @@ func (n Name) LowerCamel() string {
 func (n Name) UpperCamel() string {
 	return n.
 		Map(toFirstUpper).
-		Map(ignoreSpecial).
-		RemoveIf(isEmpty).
+		RemoveIf(isRemovable).
 		Join("", "", "")
 }
 
 func (n Name) LowerSnake() string {
 	return n.
 		Map(toLower).
-		Map(ignoreSpecial).
-		RemoveIf(isEmpty).
+		RemoveIf(isRemovable).
 		Join("_", "", "")
 }
 
 func (n Name) AllUpperSnake() string {
 	return n.
 		Map(toAllUpper).
-		Map(ignoreSpecial).
-		RemoveIf(isEmpty).
+		RemoveIf(isRemovable).
 		Join("_", "", "")
 }
 
 func (n Name) FirstUpperSnake() string {
 	return n.
 		Map(toAllUpper).
-		Map(ignoreSpecial).
-		RemoveIf(isEmpty).
+		RemoveIf(isRemovable).
 		Join("_", "", "")
 }
 
 func (n Name) LowerKebab() string {
 	return n.
 		Map(toLower).
-		Map(ignoreSpecial).
-		RemoveIf(isEmpty).
+		RemoveIf(isRemovable).
 		Join("-", "", "")
 }
 
 func (n Name) FirstUpperKebab() string {
 	return n.
 		Map(toFirstUpper).
-		Map(ignoreSpecial).
-		RemoveIf(isEmpty).
+		RemoveIf(isRemovable).
 		Join("-", "", "")
 }
 
 func (n Name) AllUpperKebab() string {
 	return n.
 		Map(toAllUpper).
-		Map(ignoreSpecial).
-		RemoveIf(isEmpty).
+		RemoveIf(isRemovable).
 		Join("-", "", "")
 }
 
@@ -184,6 +189,7 @@ func ignoreSpecial(w string) string {
 	return w
 }
 
-func isEmpty(w string) bool {
-	return w == ""
+func isRemovable(w string) bool {
+	rs := []rune(w)
+	return len(rs) == 0 || (len(rs) == 1 && isSymbolRune(rs[0]))
 }
