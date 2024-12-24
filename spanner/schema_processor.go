@@ -45,7 +45,7 @@ func ProcessSchema(ctx context.Context, q queryer, tables []string, handler Sche
 		return err
 	}
 
-	if err := w.Save(); err != nil {
+	if err := w.SaveAll(); err != nil {
 		return fmt.Errorf(`fail to save files writer: %w`, err)
 	}
 	return nil

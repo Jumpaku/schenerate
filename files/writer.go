@@ -23,7 +23,7 @@ func (w *Writer) Write(b []byte) (int, error) {
 	return w.contents[w.current].Write(b)
 }
 
-func (w *Writer) Save() error {
+func (w *Writer) SaveAll() error {
 	for name, content := range w.contents {
 		if err := saveContent(name, content); err != nil {
 			return err
