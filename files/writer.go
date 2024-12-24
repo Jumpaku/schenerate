@@ -8,19 +8,22 @@ import (
 )
 
 type Writer struct {
-	current  string
+	current  *string
 	contents map[string]*bytes.Buffer
 }
 
 var _ io.Writer = (*Writer)(nil)
 
-func (w *Writer) Add(name string) {
-	w.current = name
-	w.contents[name] = bytes.NewBuffer(nil)
+func (w *Writer) Add(path string) {
+	w.current = &path
+	w.contents[path] = bytes.NewBuffer(nil)
 }
 
 func (w *Writer) Write(b []byte) (int, error) {
-	return w.contents[w.current].Write(b)
+	if w.current == nil {
+		panic("file path not specified")
+	}
+	return w.contents[*w.current].Write(b)
 }
 
 func (w *Writer) SaveAll() error {

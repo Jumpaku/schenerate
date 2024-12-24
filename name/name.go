@@ -55,8 +55,7 @@ func (n Name) Equal(other Name) bool {
 }
 
 func (n Name) Join(sep, prefix, suffix string) string {
-	s := lo.Map(n.words, func(w string, _ int) string { return w })
-	return prefix + strings.Join(s, sep) + suffix
+	return prefix + strings.Join(n.words, sep) + suffix
 }
 
 func (n Name) Map(f func(w string) string) Name {
@@ -94,7 +93,7 @@ func (n Name) LowerCamel() string {
 
 func (n Name) UpperCamel() string {
 	return n.
-		Map(ToFirstUpper).
+		Map(toFirstUpper).
 		Map(ignoreSpecial).
 		RemoveIf(isEmpty).
 		Join("", "", "")
@@ -102,7 +101,7 @@ func (n Name) UpperCamel() string {
 
 func (n Name) LowerSnake() string {
 	return n.
-		Map(ToLower).
+		Map(toLower).
 		Map(ignoreSpecial).
 		RemoveIf(isEmpty).
 		Join("_", "", "")
@@ -110,7 +109,7 @@ func (n Name) LowerSnake() string {
 
 func (n Name) AllUpperSnake() string {
 	return n.
-		Map(ToAllUpper).
+		Map(toAllUpper).
 		Map(ignoreSpecial).
 		RemoveIf(isEmpty).
 		Join("_", "", "")
@@ -118,7 +117,7 @@ func (n Name) AllUpperSnake() string {
 
 func (n Name) FirstUpperSnake() string {
 	return n.
-		Map(ToAllUpper).
+		Map(toAllUpper).
 		Map(ignoreSpecial).
 		RemoveIf(isEmpty).
 		Join("_", "", "")
@@ -126,7 +125,7 @@ func (n Name) FirstUpperSnake() string {
 
 func (n Name) LowerKebab() string {
 	return n.
-		Map(ToLower).
+		Map(toLower).
 		Map(ignoreSpecial).
 		RemoveIf(isEmpty).
 		Join("-", "", "")
@@ -134,7 +133,7 @@ func (n Name) LowerKebab() string {
 
 func (n Name) FirstUpperKebab() string {
 	return n.
-		Map(ToFirstUpper).
+		Map(toFirstUpper).
 		Map(ignoreSpecial).
 		RemoveIf(isEmpty).
 		Join("-", "", "")
@@ -142,7 +141,7 @@ func (n Name) FirstUpperKebab() string {
 
 func (n Name) AllUpperKebab() string {
 	return n.
-		Map(ToAllUpper).
+		Map(toAllUpper).
 		Map(ignoreSpecial).
 		RemoveIf(isEmpty).
 		Join("-", "", "")
@@ -164,15 +163,15 @@ func isSymbolRune(r rune) bool {
 	return !(isLowerRune(r) || isUpperRune(r) || isDigitRune(r))
 }
 
-func ToLower(w string) string {
+func toLower(w string) string {
 	return strings.ToLower(w)
 }
 
-func ToAllUpper(w string) string {
+func toAllUpper(w string) string {
 	return strings.ToUpper(w)
 }
 
-func ToFirstUpper(w string) string {
+func toFirstUpper(w string) string {
 	rs := []rune(strings.ToLower(w))
 	return strings.ToUpper(string(rs[0])) + string(rs[1:])
 }
