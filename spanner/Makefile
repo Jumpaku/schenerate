@@ -7,7 +7,7 @@ help: ## Show this help.
 
 .PHONY: test-spanner
 test-spanner: ## initialize Spanner emulator database for develop. run in service work
-	gcloud config set project sqlgogen
+	gcloud config set project schenerate
 	gcloud config set auth/disable_credentials true
 	yes | gcloud config set api_endpoint_overrides/spanner http://spanner:9020/
 	SPANNER_EMULATOR_HOST=spanner:9010 \
@@ -16,4 +16,4 @@ test-spanner: ## initialize Spanner emulator database for develop. run in servic
 	gcloud spanner instances create test --config=emulator-config --description="Instance for integration test"
 
 	SPANNER_EMULATOR_HOST=spanner:9010 \
-	go test ./spanner/... -project=sqlgogen -instance=test
+	go test ./spanner/... -project=schenerate -instance=test

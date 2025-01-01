@@ -23,13 +23,13 @@ func TestTableLister_List(t *testing.T) {
 		{
 			name: "tables",
 			ddls: []string{
-				table_lister_ddl00AllTypes,
-				table_lister_ddl01Interleave,
-				table_lister_ddl02ForeignKeys,
-				table_lister_ddl03ForeignLoop1,
-				table_lister_ddl04ForeignLoop2,
-				table_lister_ddl05ForeignLoop3,
-				table_lister_ddl06UniqueKeys,
+				list_ddl00AllTypes,
+				list_ddl01Interleave,
+				list_ddl02ForeignKeys,
+				list_ddl03ForeignLoop1,
+				list_ddl04ForeignLoop2,
+				list_ddl05ForeignLoop3,
+				list_ddl06UniqueKeys,
 			},
 			want: []string{
 				"A",
@@ -66,23 +66,23 @@ func TestTableLister_List(t *testing.T) {
 	}
 }
 
-//go:embed testdata/table_lister/ddl_00_all_types.sql
-var table_lister_ddl00AllTypes string
+//go:embed testdata/list/ddl_00_all_types.sql
+var list_ddl00AllTypes string
 
-//go:embed testdata/table_lister/ddl_01_interleave.sql
-var table_lister_ddl01Interleave string
+//go:embed testdata/list/ddl_01_interleave.sql
+var list_ddl01Interleave string
 
-//go:embed testdata/table_lister/ddl_02_foreign_keys.sql
-var table_lister_ddl02ForeignKeys string
+//go:embed testdata/list/ddl_02_foreign_keys.sql
+var list_ddl02ForeignKeys string
 
-//go:embed testdata/table_lister/ddl_03_foreign_loop_1.sql
-var table_lister_ddl03ForeignLoop1 string
+//go:embed testdata/list/ddl_03_foreign_loop_1.sql
+var list_ddl03ForeignLoop1 string
 
-//go:embed testdata/table_lister/ddl_04_foreign_loop_2.sql
-var table_lister_ddl04ForeignLoop2 string
+//go:embed testdata/list/ddl_04_foreign_loop_2.sql
+var list_ddl04ForeignLoop2 string
 
-//go:embed testdata/table_lister/ddl_05_foreign_loop_3.sql
-var table_lister_ddl05ForeignLoop3 string
+//go:embed testdata/list/ddl_05_foreign_loop_3.sql
+var list_ddl05ForeignLoop3 string
 
-//go:embed testdata/table_lister/ddl_06_unique_keys.sql
-var table_lister_ddl06UniqueKeys string
+//go:embed testdata/list/ddl_06_unique_keys.sql
+var list_ddl06UniqueKeys string

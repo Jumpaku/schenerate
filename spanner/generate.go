@@ -8,9 +8,9 @@ import (
 	"github.com/samber/lo"
 )
 
-type SchemaProcessHandler func(out *files.Writer, schemas Schemas) error
+type Generator func(out *files.Writer, schemas Schemas) error
 
-func ProcessSchema(ctx context.Context, q queryer, tables []string, handler SchemaProcessHandler) error {
+func GenerateWithSchema(ctx context.Context, q queryer, tables []string, generator Generator) error {
 	tx := q.client.ReadOnlyTransaction()
 	defer tx.Close()
 
@@ -41,7 +41,7 @@ func ProcessSchema(ctx context.Context, q queryer, tables []string, handler Sche
 	}
 
 	w := &files.Writer{}
-	if err := handler(w, schemas); err != nil {
+	if err := generator(w, schemas); err != nil {
 		return err
 	}
 

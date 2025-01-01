@@ -20,7 +20,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 	}{
 		{
 			name: "all types",
-			ddls: []string{schema_processor_ddl00AllTypes},
+			ddls: []string{generate_ddl00AllTypes},
 			in:   []string{"A"},
 			want: spanner.Schemas{
 				spanner.Schema{
@@ -52,7 +52,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 		},
 		{
 			name: "interleave",
-			ddls: []string{schema_processor_ddl01Interleave},
+			ddls: []string{generate_ddl01Interleave},
 			in:   []string{"B_1", "B_2", "B_3", "B_4"},
 			want: spanner.Schemas{
 				spanner.Schema{
@@ -99,7 +99,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 		},
 		{
 			name: "foreign keys",
-			ddls: []string{schema_processor_ddl02ForeignKeys},
+			ddls: []string{generate_ddl02ForeignKeys},
 			in:   []string{"C_1", "C_2", "C_3", "C_4", "C_5"},
 			want: spanner.Schemas{
 				spanner.Schema{
@@ -173,7 +173,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 		},
 		{
 			name: "foreign loop 1",
-			ddls: []string{schema_processor_ddl03ForeignLoop1},
+			ddls: []string{generate_ddl03ForeignLoop1},
 			in:   []string{"D_1"},
 			want: spanner.Schemas{
 				spanner.Schema{
@@ -193,7 +193,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 		},
 		{
 			name: "foreign loop 2",
-			ddls: []string{schema_processor_ddl04ForeignLoop2},
+			ddls: []string{generate_ddl04ForeignLoop2},
 			in:   []string{"E_1", "E_2"},
 			want: spanner.Schemas{
 				spanner.Schema{
@@ -226,7 +226,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 		},
 		{
 			name: "foreign loop 3",
-			ddls: []string{schema_processor_ddl05ForeignLoop3},
+			ddls: []string{generate_ddl05ForeignLoop3},
 			in:   []string{"F_1", "F_2", "F_3"},
 			want: spanner.Schemas{
 				spanner.Schema{
@@ -272,7 +272,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 		},
 		{
 			name: "unique keys index",
-			ddls: []string{schema_processor_ddl06UniqueKeys},
+			ddls: []string{generate_ddl06UniqueKeys},
 			in:   []string{"G"},
 			want: spanner.Schemas{
 				spanner.Schema{
@@ -314,7 +314,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 			defer teardown()
 
 			var got spanner.Schemas
-			err := spanner.ProcessSchema(
+			err := spanner.GenerateWithSchema(
 				context.Background(),
 				q,
 				testcase.in,
@@ -334,23 +334,23 @@ func equalSchema(t *testing.T, want, got spanner.Schemas) {
 	require.Equal(t, want, got)
 }
 
-//go:embed testdata/schema_processor/ddl_00_all_types.sql
-var schema_processor_ddl00AllTypes string
+//go:embed testdata/generate/ddl_00_all_types.sql
+var generate_ddl00AllTypes string
 
-//go:embed testdata/schema_processor/ddl_01_interleave.sql
-var schema_processor_ddl01Interleave string
+//go:embed testdata/generate/ddl_01_interleave.sql
+var generate_ddl01Interleave string
 
-//go:embed testdata/schema_processor/ddl_02_foreign_keys.sql
-var schema_processor_ddl02ForeignKeys string
+//go:embed testdata/generate/ddl_02_foreign_keys.sql
+var generate_ddl02ForeignKeys string
 
-//go:embed testdata/schema_processor/ddl_03_foreign_loop_1.sql
-var schema_processor_ddl03ForeignLoop1 string
+//go:embed testdata/generate/ddl_03_foreign_loop_1.sql
+var generate_ddl03ForeignLoop1 string
 
-//go:embed testdata/schema_processor/ddl_04_foreign_loop_2.sql
-var schema_processor_ddl04ForeignLoop2 string
+//go:embed testdata/generate/ddl_04_foreign_loop_2.sql
+var generate_ddl04ForeignLoop2 string
 
-//go:embed testdata/schema_processor/ddl_05_foreign_loop_3.sql
-var schema_processor_ddl05ForeignLoop3 string
+//go:embed testdata/generate/ddl_05_foreign_loop_3.sql
+var generate_ddl05ForeignLoop3 string
 
-//go:embed testdata/schema_processor/ddl_06_unique_keys.sql
-var schema_processor_ddl06UniqueKeys string
+//go:embed testdata/generate/ddl_06_unique_keys.sql
+var generate_ddl06UniqueKeys string

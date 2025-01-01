@@ -20,7 +20,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 	}{
 		{
 			name: "all types",
-			ddls: []string{schema_processor_ddl00AllTypes},
+			ddls: []string{generate_ddl00AllTypes},
 			in:   []string{"A"},
 			want: postgres.Schemas{
 				postgres.Schema{
@@ -83,7 +83,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 		},
 		{
 			name: "foreign keys",
-			ddls: []string{schema_processor_ddl02ForeignKeys},
+			ddls: []string{generate_ddl02ForeignKeys},
 			in:   []string{"C_1", "C_2", "C_3", "C_4", "C_5"},
 			want: postgres.Schemas{
 				postgres.Schema{
@@ -153,7 +153,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 		},
 		{
 			name: "foreign loop 1",
-			ddls: []string{schema_processor_ddl03ForeignLoop1},
+			ddls: []string{generate_ddl03ForeignLoop1},
 			in:   []string{"D_1"},
 			want: postgres.Schemas{
 				postgres.Schema{
@@ -179,7 +179,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 		},
 		{
 			name: "foreign loop 2",
-			ddls: []string{schema_processor_ddl04ForeignLoop2},
+			ddls: []string{generate_ddl04ForeignLoop2},
 			in:   []string{"E_1", "E_2"},
 			want: postgres.Schemas{
 				postgres.Schema{
@@ -212,7 +212,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 		},
 		{
 			name: "foreign loop 3",
-			ddls: []string{schema_processor_ddl05ForeignLoop3},
+			ddls: []string{generate_ddl05ForeignLoop3},
 			in:   []string{"F_1", "F_2", "F_3"},
 			want: postgres.Schemas{
 				postgres.Schema{
@@ -258,7 +258,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 		},
 		{
 			name: "unique keys constraint",
-			ddls: []string{schema_processor_ddl07UniqueKeysConstraint},
+			ddls: []string{generate_ddl07UniqueKeysConstraint},
 			in:   []string{"H"},
 			want: postgres.Schemas{
 				postgres.Schema{
@@ -311,7 +311,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 		},
 		{
 			name: "unique keys column",
-			ddls: []string{schema_processor_ddl08UniqueKeysColumn},
+			ddls: []string{generate_ddl08UniqueKeysColumn},
 			in:   []string{"I"},
 			want: postgres.Schemas{
 				postgres.Schema{
@@ -346,7 +346,7 @@ func TestSchemaProcessor_Process(t *testing.T) {
 			defer teardown()
 
 			var got postgres.Schemas
-			err := postgres.ProcessSchema(
+			err := postgres.GenerateWithSchema(
 				context.Background(),
 				q,
 				testcase.in,
@@ -366,23 +366,23 @@ func equalSchema(t *testing.T, want, got postgres.Schemas) {
 	require.Equal(t, want, got)
 }
 
-//go:embed testdata/schema_processor/ddl_00_all_types.sql
-var schema_processor_ddl00AllTypes string
+//go:embed testdata/generate/ddl_00_all_types.sql
+var generate_ddl00AllTypes string
 
-//go:embed testdata/schema_processor/ddl_02_foreign_keys.sql
-var schema_processor_ddl02ForeignKeys string
+//go:embed testdata/generate/ddl_02_foreign_keys.sql
+var generate_ddl02ForeignKeys string
 
-//go:embed testdata/schema_processor/ddl_03_foreign_loop_1.sql
-var schema_processor_ddl03ForeignLoop1 string
+//go:embed testdata/generate/ddl_03_foreign_loop_1.sql
+var generate_ddl03ForeignLoop1 string
 
-//go:embed testdata/schema_processor/ddl_04_foreign_loop_2.sql
-var schema_processor_ddl04ForeignLoop2 string
+//go:embed testdata/generate/ddl_04_foreign_loop_2.sql
+var generate_ddl04ForeignLoop2 string
 
-//go:embed testdata/schema_processor/ddl_05_foreign_loop_3.sql
-var schema_processor_ddl05ForeignLoop3 string
+//go:embed testdata/generate/ddl_05_foreign_loop_3.sql
+var generate_ddl05ForeignLoop3 string
 
-//go:embed testdata/schema_processor/ddl_07_unique_keys_constraint.sql
-var schema_processor_ddl07UniqueKeysConstraint string
+//go:embed testdata/generate/ddl_07_unique_keys_constraint.sql
+var generate_ddl07UniqueKeysConstraint string
 
-//go:embed testdata/schema_processor/ddl_08_unique_keys_column.sql
-var schema_processor_ddl08UniqueKeysColumn string
+//go:embed testdata/generate/ddl_08_unique_keys_column.sql
+var generate_ddl08UniqueKeysColumn string

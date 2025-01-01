@@ -2,47 +2,58 @@ package files
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 )
 
 type Writer struct {
-	current  *string
-	contents map[string]*bytes.Buffer
+	contents []struct {
+		path    string
+		content *bytes.Buffer
+	}
 }
 
 var _ io.Writer = (*Writer)(nil)
 
 func (w *Writer) Add(path string) {
-	w.current = &path
-	w.contents[path] = bytes.NewBuffer(nil)
+	w.contents = append(w.contents, struct {
+		path    string
+		content *bytes.Buffer
+	}{
+		path:    path,
+		content: bytes.NewBuffer(nil),
+	})
 }
 
 func (w *Writer) Write(b []byte) (int, error) {
-	if w.current == nil {
-		panic("file path not specified")
+	if len(w.contents) == 0 {
+		panic("file path not added")
 	}
-	return w.contents[*w.current].Write(b)
+	return w.contents[len(w.contents)-1].content.Write(b)
 }
 
 func (w *Writer) SaveAll() error {
-	for name, content := range w.contents {
-		if err := saveContent(name, content); err != nil {
+	for _, content := range w.contents {
+		if err := saveContent(content.path, content.content); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func saveContent(name string, content *bytes.Buffer) error {
+func saveContent(name string, content *bytes.Buffer) (err error) {
 	f, err := os.Create(name)
 	if err != nil {
 		return fmt.Errorf(`fail to create file %s: %w`, name, err)
 	}
-	defer f.Close()
-	if _, err := io.Copy(f, content); err != nil {
-		return fmt.Errorf(`fail to write file %s: %w`, name, err)
+	defer func(f *os.File) {
+		err = errors.Join(err, f.Close())
+	}(f)
+	if _, e := io.Copy(f, content); e != nil {
+		err = fmt.Errorf(`fail to write file %s: %w`, name, e)
+		return err
 	}
 	return nil
 }
