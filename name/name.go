@@ -181,14 +181,6 @@ func toFirstUpper(w string) string {
 	return strings.ToUpper(string(rs[0])) + string(rs[1:])
 }
 
-func ignoreSpecial(w string) string {
-	rs := []rune(w)
-	if len(rs) == 1 && isSymbolRune(rs[0]) {
-		return ""
-	}
-	return w
-}
-
 func isRemovable(w string) bool {
 	rs := []rune(w)
 	return len(rs) == 0 || (len(rs) == 1 && isSymbolRune(rs[0]))
