@@ -4,7 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"github.com/Jumpaku/sql-gogen-lib/sqlite3"
+	"github.com/Jumpaku/schenerate/sqlite3"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"

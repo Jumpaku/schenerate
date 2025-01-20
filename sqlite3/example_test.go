@@ -3,8 +3,8 @@ package sqlite3_test
 import (
 	"context"
 	"fmt"
-	"github.com/Jumpaku/sql-gogen-lib/files"
-	"github.com/Jumpaku/sql-gogen-lib/sqlite3"
+	"github.com/Jumpaku/schenerate/files"
+	"github.com/Jumpaku/schenerate/sqlite3"
 )
 
 func Example_generateWithSchema() {

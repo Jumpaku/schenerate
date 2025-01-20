@@ -1,7 +1,7 @@
 package name_test
 
 import (
-	"github.com/Jumpaku/sql-gogen-lib/name"
+	"github.com/Jumpaku/schenerate/name"
 	"testing"
 )
 

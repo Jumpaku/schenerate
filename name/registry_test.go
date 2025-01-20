@@ -2,7 +2,7 @@ package name_test
 
 import (
 	"fmt"
-	"github.com/Jumpaku/sql-gogen-lib/name"
+	"github.com/Jumpaku/schenerate/name"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

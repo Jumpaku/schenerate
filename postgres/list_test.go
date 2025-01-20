@@ -4,7 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"github.com/Jumpaku/sql-gogen-lib/postgres"
+	"github.com/Jumpaku/schenerate/postgres"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"

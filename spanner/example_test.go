@@ -3,8 +3,8 @@ package spanner_test
 import (
 	"context"
 	"fmt"
-	"github.com/Jumpaku/sql-gogen-lib/files"
-	"github.com/Jumpaku/sql-gogen-lib/spanner"
+	"github.com/Jumpaku/schenerate/files"
+	"github.com/Jumpaku/schenerate/spanner"
 )
 
 func Example_generateWithSchema() {

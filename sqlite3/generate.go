@@ -4,7 +4,7 @@ import (
 	"cmp"
 	"context"
 	"fmt"
-	"github.com/Jumpaku/sql-gogen-lib/files"
+	"github.com/Jumpaku/schenerate/files"
 	"github.com/samber/lo"
 	"slices"
 )

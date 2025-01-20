@@ -1,4 +1,4 @@
-module github.com/Jumpaku/sql-gogen-lib
+module github.com/Jumpaku/schenerate
 
 go 1.21.5
 

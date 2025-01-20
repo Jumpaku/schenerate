@@ -4,7 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"github.com/Jumpaku/sql-gogen-lib/spanner"
+	"github.com/Jumpaku/schenerate/spanner"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"

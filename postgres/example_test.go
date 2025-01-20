@@ -3,8 +3,8 @@ package postgres_test
 import (
 	"context"
 	"fmt"
-	"github.com/Jumpaku/sql-gogen-lib/files"
-	"github.com/Jumpaku/sql-gogen-lib/postgres"
+	"github.com/Jumpaku/schenerate/files"
+	"github.com/Jumpaku/schenerate/postgres"
 )
 
 func Example_generateWithSchema() {
