@@ -46,8 +46,10 @@ func (w *Writer) SaveAll() error {
 
 func saveContent(name string, content *bytes.Buffer) (err error) {
 	dir, _ := filepath.Split(name)
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return fmt.Errorf(`fail to create directory %s: %w`, dir, err)
+	if dir != "" {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return fmt.Errorf(`fail to create directory %s: %w`, dir, err)
+		}
 	}
 	f, err := os.Create(name)
 	if err != nil {
