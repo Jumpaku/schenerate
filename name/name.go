@@ -126,7 +126,7 @@ func (n Name) AllUpperSnake() string {
 
 func (n Name) FirstUpperSnake() string {
 	return n.
-		Map(toAllUpper).
+		Map(toFirstUpper).
 		RemoveIf(isRemovable).
 		Join("_", "", "")
 }

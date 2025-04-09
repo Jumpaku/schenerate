@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func TestSchemaProcessor_Process(t *testing.T) {
+func TestGenerateWithSchema(t *testing.T) {
 	testcases := []struct {
 		name string
 		ddls []string
