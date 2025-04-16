@@ -1,4 +1,4 @@
-package spanner
+package sqlite3
 
 import (
 	"context"
@@ -6,9 +6,9 @@ import (
 	"github.com/Jumpaku/schenerate/files"
 )
 
-type Generator func(out *files.Writer, schemas Schemas) error
+type GeneratorWithSchema func(out *files.Writer, schemas Schemas) error
 
-func GenerateWithSchema(ctx context.Context, q queryer, tables []string, generator Generator) error {
+func GenerateWithSchema(ctx context.Context, q queryer, tables []string, generator GeneratorWithSchema) error {
 	schemas, err := ListSchemas(ctx, q, tables)
 	if err != nil {
 		return fmt.Errorf(`fail to list schemas: %w`, err)

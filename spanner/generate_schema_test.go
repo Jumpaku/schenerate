@@ -309,7 +309,7 @@ func TestGenerateWithSchema(t *testing.T) {
 	}
 	for number, testcase := range testcases {
 		t.Run(testcase.name, func(t *testing.T) {
-			dbPath := fmt.Sprintf(`schemaprocessor_%d_%d`, number, time.Now().Unix())
+			dbPath := fmt.Sprintf(`gws_%d_%d`, number, time.Now().Unix())
 			q, teardown := spanner.Setup(t, dbPath, testcase.ddls)
 			defer teardown()
 
