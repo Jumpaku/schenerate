@@ -16,7 +16,7 @@ func GenerateWithQuery[RecordStruct any](ctx context.Context, q queryer, stmt st
 
 	w := &files.Writer{}
 	if err := generator(w, rows); err != nil {
-		return fmt.Errorf(`fail to process row: %w`, err)
+		return fmt.Errorf(`fail to process rows: %w`, err)
 	}
 
 	if err := w.SaveAll(); err != nil {
