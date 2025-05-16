@@ -8,7 +8,7 @@ import (
 	"slices"
 )
 
-func ListSchemas(ctx context.Context, q queryer, tables []string) (schemas []Schema, err error) {
+func ListSchemas(ctx context.Context, q queryer, tables []string) (schemas Schemas, err error) {
 	for _, t := range tables {
 		schema, err := queryTable(ctx, q, t)
 		if err != nil {

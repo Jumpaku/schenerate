@@ -7,7 +7,7 @@ import (
 	"github.com/samber/lo"
 )
 
-func ListSchemas(ctx context.Context, q queryer, tables []string) (schemas []Schema, err error) {
+func ListSchemas(ctx context.Context, q queryer, tables []string) (schemas Schemas, err error) {
 	tx := q.client.ReadOnlyTransaction()
 	defer tx.Close()
 
