@@ -28,8 +28,10 @@ func (g Graph[Schema]) References(index int) []int {
 }
 
 // TopologicalSort performs a topological sort on the graph.
-// This method returns nil, true if the cycle is detected.
-// Otherwise, it returns ordered indexes the schemas so that u comes after v for all dependencies (u,v) each of which is the relationship where the schema at index u depends on the schema at index v.
+// Returns (nil, true) if a cycle is detected in the graph.
+// Otherwise, returns (orderedIndexes, false), where orderedIndexes is a slice of schema indexes sorted such that
+// the index u comes after the index v for all dependencies (u, v), each of which is the relationship that the schema
+// at the index u depends on the schema at the index v.
 // Related description: https://en.wikipedia.org/wiki/Topological_sorting#Kahn's_algorithm
 func (g Graph[Schema]) TopologicalSort() (orderedIndexes []int, cyclic bool) {
 	inDegree := make([]int, g.Len())

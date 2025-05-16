@@ -104,30 +104,6 @@ func TestSchemas_BuildGraph(t *testing.T) {
 			},
 			want: [][]int{{2}, {0}, {1}},
 		},
-		{
-			name: "ddl_07_foreign_loop_3",
-			sut: Schemas{
-				{
-					Name: "F_1",
-					ForeignKeys: []ForeignKey{
-						{Reference: ForeignKeyReference{Table: "F_3"}},
-					},
-				},
-				{
-					Name: "F_2",
-					ForeignKeys: []ForeignKey{
-						{Reference: ForeignKeyReference{Table: "F_1"}},
-					},
-				},
-				{
-					Name: "F_3",
-					ForeignKeys: []ForeignKey{
-						{Reference: ForeignKeyReference{Table: "F_2"}},
-					},
-				},
-			},
-			want: [][]int{{2}, {0}, {1}},
-		},
 	}
 	for _, tt := range testcases {
 		t.Run(tt.name, func(t *testing.T) {
