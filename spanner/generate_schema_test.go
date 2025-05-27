@@ -331,7 +331,17 @@ func TestGenerateWithSchema(t *testing.T) {
 func equalSchema(t *testing.T, want, got spanner.Schemas) {
 	t.Helper()
 
-	require.Equal(t, want, got)
+	require.Equal(t, len(want), len(got), "length of schemas should be equal")
+	for i, w := range want {
+		g := got[i]
+		require.Equal(t, w.Name, g.Name, "schema name should be equal")
+		require.Equal(t, w.Type, g.Type, "schema type should be equal")
+		require.Equal(t, w.Parent, g.Parent, "schema parent should be equal")
+		require.ElementsMatch(t, w.Columns, g.Columns, "schema columns should be equal")
+		require.ElementsMatch(t, w.PrimaryKey, g.PrimaryKey, "primary key should be equal")
+		require.ElementsMatch(t, w.ForeignKeys, g.ForeignKeys, "foreign keys should be equal")
+		require.ElementsMatch(t, w.Indexes, g.Indexes, "indexes should be equal")
+	}
 }
 
 //go:embed testdata/generate/ddl_00_all_types.sql
