@@ -72,9 +72,9 @@ func TestGraph_TopologicalSort(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			gotOrderedIndexes, gotCyclic := tt.sut.TopologicalSort()
-			assert.Equal(t, gotCyclic, tt.wantCyclic)
-			if tt.wantCyclic {
-				assert.ElementsMatch(t, gotOrderedIndexes, tt.wantOrderedIndexes)
+			assert.Equal(t, tt.wantCyclic, gotCyclic)
+			if !tt.wantCyclic {
+				assert.Equal(t, tt.wantOrderedIndexes, gotOrderedIndexes)
 			}
 		})
 	}

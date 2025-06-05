@@ -31,11 +31,17 @@ func (g Graph[Schema]) References(index int) []int {
 // Returns (nil, true) if a cycle is detected in the graph.
 // Otherwise, returns (orderedIndexes, false), where orderedIndexes is a slice of schema indexes sorted such that
 // the index u comes after the index v for all dependencies (u, v), each of which is the relationship that the schema
-// at the index u depends on the schema at the index v.
+// at the index v depends on the schema at the index u.
 // Related description: https://en.wikipedia.org/wiki/Topological_sorting#Kahn's_algorithm
 func (g Graph[Schema]) TopologicalSort() (orderedIndexes []int, cyclic bool) {
-	inDegree := make([]int, g.Len())
-	for _, vs := range g.dependency {
+	dep := make([][]int, g.Len())
+	for u, vs := range g.dependency {
+		for _, v := range vs {
+			dep[v] = append(dep[v], u)
+		}
+	}
+	inDegree := make([]int, len(dep))
+	for _, vs := range dep {
 		for _, v := range vs {
 			inDegree[v]++
 		}
@@ -48,11 +54,12 @@ func (g Graph[Schema]) TopologicalSort() (orderedIndexes []int, cyclic bool) {
 		}
 	}
 
+	orderedIndexes = []int{}
 	for len(q) > 0 {
 		u := q[0]
 		q = q[1:]
 		orderedIndexes = append(orderedIndexes, u)
-		for _, v := range g.dependency[u] {
+		for _, v := range dep[u] {
 			inDegree[v]--
 			if inDegree[v] == 0 {
 				q = append(q, v)
@@ -60,7 +67,7 @@ func (g Graph[Schema]) TopologicalSort() (orderedIndexes []int, cyclic bool) {
 		}
 	}
 
-	if len(orderedIndexes) != g.Len() {
+	if len(orderedIndexes) != len(dep) {
 		return nil, true // Cycle detected
 	}
 
